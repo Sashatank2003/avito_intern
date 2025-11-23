@@ -1,0 +1,104 @@
+# Конфигурация golangci-lint для PR Reviewer Service
+# Агрегатор линтеров для проверки качества кода
+
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+  
+  gocyclo:
+    # Максимальная цикломатическая сложность функции
+    # 15+ означает что функция требует рефакторинга
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  lll:
+    # Максимальная длина строки: 120 символов
+    line-length: 120
+  
+  goimports:
+    # Группировка импортов: stdlib -> external -> avito_intern
+    local-prefixes: avito_intern
+  
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+      - name: var-naming
+        disabled: false
+      - name: package-comments
+        disabled: true
+      - name: superfluous-else
+        disabled: false
+      - name: context-keys-type
+        disabled: false
+
+linters:
+  disable-all: true
+  
+  # Включены основные линтеры для Go
+  enable:
+    - errcheck      # Проверка обработки ошибок (критично)
+    - govet         # Официальный анализатор Go
+    - ineffassign   # Бесполезные присваивания
+    - staticcheck   # Мощный статический анализатор
+    - gocyclo       # Цикломатическая сложность
+    - goconst       # Повторяющиеся строки/числа
+    - misspell      # Проверка орфографии
+    - gosec         # Security проверки
+    - unconvert     # Ненужные преобразования типов
+    - unparam       # Неиспользуемые параметры
+    - whitespace    # Лишние пустые строки
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  exclude-rules:
+    # Ослабленные проверки для тестов
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+    
+    # Игнорировать автогенерированный код (oapi-codegen)
+    - path: internal/api/generated.go
+      linters:
+        - all
+  
+  # Показывать все найденные проблемы
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
